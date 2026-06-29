@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechPower — Solutions Numériques</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+:root{
+  --primary:#7C3AED;--primary-dark:#6D28D9;--primary-light:#EDE9FE;
+  --black:#0A0A0A;--white:#FFFFFF;--gray:#F5F5F5;--gray2:#E0E0E0;
+  --muted:#666;--radius:16px;
+  --nav-h:68px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--black);overflow-x:hidden;}
+
+#curtain{
+  position:fixed;inset:0;z-index:9000;
+  background:var(--primary);
+  transform:scaleY(0);transform-origin:bottom;
+  pointer-events:none;
+}
+#curtain.down{animation:cDown .4s cubic-bezier(.77,0,.18,1) forwards;}
+#curtain.up  {animation:cUp   .4s cubic-bezier(.77,0,.18,1) forwards;}
+@keyframes cDown{to{transform:scaleY(1);transform-origin:bottom;}}
+@keyframes cUp{from{transform:scaleY(1);transform-origin:botom;}to{transform:scaleY(0);transform-origin:bottom;}}
+
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  height:var(--nav-h);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 5%;
+  background:rgba(255,255,255,.97);
+  backdrop-filter:blur(16px);
+  border-bottom:2.5px solid var(--primary);
+}
+.logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1.45rem;
+  color:var(--black);display:flex;align-items:center;gap:.35rem;cursor:pointer;
+  flex-shrink:0;
+}
+.logo em{font-style:normal;background:var(--primary);color:#fff;padding:1px 8px;border-radius:5px;}
+
+.nav-links{display:flex;gap:.25rem;list-style:none;align-items:center;}
+.nav-btn{
+  background:none;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-weight:600;font-size:.9rem;
+  color:var(--black);padding:.4rem .9rem;border-radius:8px;
+  position:relative;transition:color .2s;white-space:nowrap;
+}
+.nav-btn::after{
+  content:'';position:absolute;bottom:2px;left:.9rem;right:.9rem;height:2px;
+  background:var(--primary);border-radius:2px;
+  transform:scaleX(0);transform-origin:left;transition:transform .25s;
+}
+.nav-btn:hover::after,.nav-btn.active::after{transform:scaleX(1);}
+.nav-btn.active{color:#5B21B6;}
+.nav-cta-btn{
+  background:var(--primary);color:#fff;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;
+  border:none;padding:.5rem 1.2rem;border-radius:7px;cursor:pointer;
+  transition:background .2s,transform .15s;white-space:nowrap;margin-left:.5rem;
+}
+.nav-cta-btn:hover{background:var(--primary-dark);transform:translateY(-1px);}
+
+.hamburger{
+  display:none;flex-direction:column;gap:5px;
+  cursor:pointer;background:none;border:none;padding:.4rem;
+  z-index:600;
+}
+.hamburger span{
+  display:block;width:24px;height:2.5px;
+  background:var(--black);border-radius:2px;
+  transition:transform .3s,opacity .3s;
+}
+.hamburger.open span:nth-child(1){transform:translateY(7.5px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;}
+.hamburger.open span:nth-child(3){transform:translateY(-7.5px) rotate(-45deg);}
+
+.mobile-menu{
+  display:none;position:fixed;inset:0;top:var(--nav-h);z-index:450;
+  background:var(--white);
+  flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;
+  animation:menuIn .3s ease;
+}
+.mobile-menu.open{display:flex;}
+@keyframes menuIn{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
+.mob-btn{
+  background:none;border:none;cursor:pointer;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:1.6rem;
+  color:var(--black);padding:.6rem 2rem;border-radius:10px;
+  transition:background .2s;width:80%;text-align:center;
+}
+.mob-btn:hover{background:var(--primary-light);}
+.mob-btn.active{background:var(--primary);color:#fff;}
+.mob-cta{
+  background:var(--primary);color:#fff;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;
+  border:none;padding:.8rem 2.5rem;border-radius:10px;cursor:pointer;
+  box-shadow:3px 3px 0 var(--black);width:80%;
+}
+
+.pages{min-height:100vh;}
+.page{display:none;padding-top:var(--nav-h);animation:pageIn .5s ease forwards;}
+.page.active{display:block;}
+@keyframes pageIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+.hero{
+  min-height:calc(100vh - var(--nav-h));
+  display:flex;align-items:center;
+  padding:4rem 5%;background:var(--white);
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;right:-10%;top:5%;
+  width:min(560px,80vw);height:min(560px,80vw);border-radius:50%;
+  background:var(--primary);opacity:.08;
+  animation:pulse 7s ease-in-out infinite;
+}
+.hero::after{
+  content:'';position:absolute;right:6%;top:15%;
+  width:min(340px,50vw);height:min(340px,50vw);border-radius:50%;
+  background:var(--primary);opacity:.13;
+  animation:pulse 7s ease-in-out 1.2s infinite;
+}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+.hero-inner{position:relative;z-index:1;max-width:660px;width:100%;}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:var(--primary-light);border:1.5px solid var(--primary);
+  border-radius:100px;padding:.35rem 1rem;font-size:.8rem;font-weight:500;color:#5B21B6;
+  margin-bottom:1.4rem;
+}
+.badge-dot{width:8px;height:8px;background:var(--primary);border-radius:50%;animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2.2rem,5.5vw,4.8rem);
+  font-weight:800;line-height:1.06;margin-bottom:1.3rem;
+}
+.hero h1 em{font-style:normal;background:var(--primary);color:#fff;padding:0 8px;border-radius:6px;}
+.hero p{font-size:clamp(.95rem,2.5vw,1.1rem);color:var(--muted);line-height:1.75;max-width:500px;margin-bottom:2rem;}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;}
+
+.btn-primary{
+  background:var(--primary);color:#fff;
+  font-family:'Syne',sans-serif;font-weight:700;
+  padding:.75rem 1.7rem;border-radius:8px;border:none;cursor:pointer;
+  font-size:clamp(.85rem,2vw,.95rem);
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:4px 4px 0 var(--black);
+}
+.btn-primary:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--black);}
+.btn-outline{
+  background:transparent;color:var(--black);
+  font-family:'Syne',sans-serif;font-weight:700;
+  padding:.75rem 1.7rem;border-radius:8px;
+  border:2px solid var(--black);cursor:pointer;
+  font-size:clamp(.85rem,2vw,.95rem);transition:background .15s;
+}
+.btn-outline:hover{background:var(--gray);}
+
+.stats-row{
+  background:var(--black);display:flex;flex-wrap:wrap;justify-content:center;
+}
+.stat{padding:1.4rem 2.5rem;text-align:center;border-right:1px solid #1e1e1e;}
+.stat:last-child{border-right:none;}
+.stat-n{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,3vw,2rem);font-weight:800;color:#A78BFA;}
+.stat-l{font-size:.8rem;color:#aaa;margin-top:.2rem;}
+
+.pg-hero{padding:4rem 5% 3rem;background:var(--black);position:relative;overflow:hidden;}
+.pg-hero::before{
+  content:'';position:absolute;right:-8%;top:-20%;
+  width:min(500px,70vw);height:min(500px,70vw);border-radius:50%;
+  background:var(--primary);opacity:.07;
+}
+.pg-label{
+  font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;margin-bottom:.7rem;
+}
+.pg-label.dark{color:#A78BFA;}
+.pg-label.light{color:#7C3AED;}
+.pg-hero h2{
+  font-family:'Syne',sans-serif;font-size:clamp(1.8rem,5vw,3.5rem);
+  font-weight:800;color:var(--white);line-height:1.1;
+  max-width:600px;margin-bottom:1rem;position:relative;z-index:1;
+}
+.pg-hero p{color:#aaa;font-size:clamp(.88rem,2vw,1rem);line-height:1.7;max-width:500px;position:relative;z-index:1;}
+
+.srv-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));
+  gap:1.5rem;padding:3.5rem 5%;
+}
+.srv-card{
+  border-radius:var(--radius);overflow:hidden;
+  border:2px solid var(--gray2);
+  transition:transform .25s,box-shadow .25s,border-color .25s;
+}
+.srv-card:hover{transform:translateY(-6px);box-shadow:0 16px 40px rgba(124,58,237,.12);border-color:var(--primary);}
+.srv-card-top{padding:2rem 1.8rem 1.4rem;background:var(--primary-light);display:flex;flex-direction:column;gap:.8rem;}
+.srv-emoji{font-size:2.6rem;line-height:1;}
+.srv-card-top h3{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;color:#3B0764;}
+.srv-card-body{padding:1.4rem 1.8rem 1.8rem;background:var(--white);}
+.srv-card-body p{color:var(--muted);font-size:.9rem;line-height:1.7;margin-bottom:1.1rem;}
+.srv-list{list-style:none;display:flex;flex-direction:column;gap:.45rem;}
+.srv-list li{font-size:.86rem;font-weight:500;display:flex;align-items:center;gap:.5rem;}
+.srv-list li::before{content:'';display:block;width:7px;height:7px;background:var(--primary);border-radius:50%;flex-shrink:0;}
+.srv-cta{
+  margin-top:1.4rem;background:var(--primary);color:#fff;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;
+  padding:.5rem 1.2rem;border-radius:7px;cursor:pointer;border:none;
+  transition:background .2s;
+}
+.srv-cta:hover{background:var(--primary-dark);}
+
+.why-hero{
+  padding:4rem 5% 3rem;background:var(--primary);
+  position:relative;overflow:hidden;
+}
+.why-hero::after{
+  content:'';position:absolute;right:-5%;bottom:-30%;
+  width:min(450px,70vw);height:min(450px,70vw);border-radius:50%;background:rgba(0,0,0,.1);
+}
+.why-hero h2{
+  font-family:'Syne',sans-serif;font-size:clamp(1.8rem,5vw,3.5rem);
+  font-weight:800;color:#fff;line-height:1.1;
+  max-width:600px;margin-bottom:1rem;position:relative;z-index:1;
+}
+.why-hero p{color:rgba(255,255,255,.75);font-size:clamp(.88rem,2vw,1rem);line-height:1.7;max-width:480px;position:relative;z-index:1;}
+.why-hero .pg-label{color:#DDD6FE;}
+
+.why-atouts{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));
+  gap:1.2rem;padding:3.5rem 5%;background:var(--black);
+}
+.atout{
+  background:#111;border:1px solid #1e1e1e;border-radius:14px;padding:1.8rem;
+  transition:border-color .2s,transform .2s;position:relative;overflow:hidden;
+}
+.atout:hover{border-color:#7C3AED;transform:translateY(-3px);}
+.atout::before{
+  content:attr(data-num);
+  position:absolute;right:1rem;top:.6rem;
+  font-family:'Syne',sans-serif;font-size:4.5rem;font-weight:800;
+  color:rgba(124,58,237,.08);line-height:1;pointer-events:none;
+}
+.atout-icon{font-size:1.8rem;margin-bottom:.9rem;}
+.atout h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--white);margin-bottom:.5rem;}
+.atout p{font-size:.86rem;color:#999;line-height:1.6;}
+
+.why-temos{padding:3.5rem 5%;}
+.sec-head{margin-bottom:2.5rem;}
+.sec-head .lbl{font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#7C3AED;margin-bottom:.5rem;}
+.sec-head h3{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,3.5vw,2.2rem);font-weight:800;line-height:1.2;}
+.temo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:1.3rem;}
+.temo{background:var(--gray);border-radius:12px;padding:1.8rem;border-left:4px solid var(--primary);}
+.temo-text{font-size:.9rem;line-height:1.7;color:var(--black);margin-bottom:1.1rem;font-style:italic;}
+.temo-author{display:flex;align-items:center;gap:.75rem;}
+.temo-av{width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;flex-shrink:0;}
+.temo-name{font-weight:700;font-size:.87rem;}
+.temo-role{font-size:.78rem;color:var(--muted);}
+
+.chiffres{
+  background:var(--primary);padding:3rem 5%;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));
+  gap:1.5rem;text-align:center;
+}
+.ch-n{font-family:'Syne',sans-serif;font-size:clamp(2rem,5vw,2.8rem);font-weight:800;color:#fff;}
+.ch-l{font-size:.85rem;color:rgba(255,255,255,.75);margin-top:.25rem;}
+
+.proc-hero{
+  padding:4rem 5% 3rem;
+  background:linear-gradient(135deg,#EDE9FE 0%,var(--white) 60%);
+  border-bottom:2px solid var(--primary);
+}
+.proc-hero h2{
+  font-family:'Syne',sans-serif;font-size:clamp(1.8rem,5vw,3.5rem);
+  font-weight:800;color:var(--black);line-height:1.1;
+  max-width:600px;margin-bottom:1rem;
+}
+.proc-hero p{color:var(--muted);font-size:clamp(.88rem,2vw,1rem);line-height:1.7;max-width:500px;}
+
+.timeline{padding:4rem 5%;}
+.tl-item{
+  display:grid;grid-template-columns:60px 1fr;gap:1.5rem;
+  margin-bottom:3rem;
+  opacity:0;transform:translateX(-25px);
+  transition:opacity .5s ease,transform .5s ease;
+}
+.tl-item.visible{opacity:1;transform:translateX(0);}
+.tl-left{display:flex;flex-direction:column;align-items:center;gap:.4rem;}
+.tl-circle{
+  width:56px;height:56px;background:var(--primary);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1.25rem;color:#fff;
+  flex-shrink:0;box-shadow:0 0 0 5px rgba(124,58,237,.15);
+}
+.tl-line{width:2px;flex:1;background:var(--gray2);margin-top:.3rem;}
+.tl-item:last-child .tl-line{display:none;}
+.tl-content{padding:.3rem 0 0;}
+.tl-content h3{font-family:'Syne',sans-serif;font-size:clamp(1rem,2.5vw,1.2rem);font-weight:800;margin-bottom:.4rem;}
+.tl-content p{color:var(--muted);line-height:1.7;font-size:clamp(.85rem,2vw,.93rem);max-width:520px;}
+.tl-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.9rem;}
+.tl-tag{background:var(--primary-light);color:#5B21B6;font-size:.73rem;font-weight:600;padding:.2rem .7rem;border-radius:100px;border:1px solid #C4B5FD;}
+.tl-dur{
+  display:inline-flex;align-items:center;gap:.35rem;
+  background:var(--black);color:#A78BFA;
+  font-size:.76rem;font-weight:700;font-family:'Syne',sans-serif;
+  padding:.25rem .75rem;border-radius:100px;margin-top:.7rem;
+}
+
+.proc-cta{background:var(--black);padding:3.5rem 5%;text-align:center;}
+.proc-cta h3{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,3.5vw,2.2rem);font-weight:800;color:var(--white);margin-bottom:.9rem;}
+.proc-cta p{color:#aaa;margin-bottom:1.8rem;font-size:.93rem;}
+
+/* ── CONTACT ── */
+.contact-wrap{display:grid;grid-template-columns:1fr 1.2fr;min-height:calc(100vh - var(--nav-h));}
+.c-left{
+  background:var(--black);padding:3.5rem 3rem;
+  display:flex;flex-direction:column;justify-content:center;
+  position:relative;overflow:hidden;
+}
+.c-left::before{
+  content:'';position:absolute;left:-20%;bottom:-20%;
+  width:min(400px,70vw);height:min(400px,70vw);border-radius:50%;
+  background:var(--primary);opacity:.07;
+}
+.c-left .pg-label{margin-bottom:.7rem;}
+.c-left h2{
+  font-family:'Syne',sans-serif;font-size:clamp(1.6rem,3.5vw,2.6rem);
+  font-weight:800;color:var(--white);line-height:1.15;margin-bottom:1rem;position:relative;z-index:1;
+}
+.c-left p{color:#aaa;line-height:1.75;font-size:.93rem;margin-bottom:2.2rem;position:relative;z-index:1;}
+.c-infos{display:flex;flex-direction:column;gap:1.1rem;position:relative;z-index:1;}
+.c-info{display:flex;align-items:flex-start;gap:.9rem;}
+.c-info-icon{width:40px;height:40px;background:rgba(124,58,237,.18);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.c-info-text strong{display:block;color:var(--white);font-size:.87rem;margin-bottom:.15rem;}
+.c-info-text span{color:#aaa;font-size:.82rem;}
+.c-socials{display:flex;gap:.7rem;margin-top:2rem;position:relative;z-index:1;}
+.soc{width:38px;height:38px;background:rgba(255,255,255,.08);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;text-decoration:none;color:#fff;}
+.soc:hover{background:var(--primary);}
+.soc svg{width:18px;height:18px;fill:currentColor;}
+
+.c-right{padding:3.5rem 3rem;display:flex;flex-direction:column;justify-content:center;background:var(--white);}
+.c-right h3{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:.3rem;}
+.c-right .sub{color:var(--muted);font-size:.87rem;margin-bottom:1.8rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-bottom:.9rem;}
+.fg{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.9rem;}
+.fg label{font-size:.8rem;font-weight:600;color:var(--black);}
+.fg input,.fg select,.fg textarea{
+  padding:.7rem .95rem;border-radius:8px;
+  border:2px solid var(--gray2);font-family:'DM Sans',sans-serif;
+  font-size:.9rem;color:var(--black);background:var(--white);
+  transition:border-color .2s,box-shadow .2s;outline:none;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,58,237,.15);}
+.fg textarea{resize:vertical;min-height:110px;}
+
+.form-sub{
+  background:var(--primary);color:#fff;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;
+  padding:.85rem;border-radius:8px;border:none;cursor:pointer;
+  width:100%;transition:transform .15s,box-shadow .15s,background .2s,opacity .2s;
+  box-shadow:4px 4px 0 var(--black);margin-top:.4rem;
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+}
+.form-sub:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--black);}
+.form-sub:disabled{opacity:.65;cursor:not-allowed;transform:none;box-shadow:none;}
+
+.spinner{
+  width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.form-sub.loading .spinner{display:block;}
+.form-sub.loading .btn-label{display:none;}
+
+.form-err{
+  display:none;background:#fff0f0;border:1.5px solid #ffb3b3;
+  border-radius:8px;padding:.8rem 1rem;margin-bottom:1rem;
+  font-size:.85rem;color:#c0392b;line-height:1.5;
+}
+.form-err.show{display:block;}
+
+.form-ok{
+  display:none;text-align:center;padding:2rem;
+  background:var(--primary-light);border-radius:12px;border:2px solid var(--primary);
+}
+.form-ok h4{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;color:#3B0764;margin-bottom:.4rem;}
+.form-ok p{color:var(--muted);font-size:.87rem;}
+
+footer{
+  background:var(--black);color:#aaa;padding:2rem 5%;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;
+}
+footer .logo{color:var(--white);}
+footer p{font-size:.8rem;}
+.ft-links{display:flex;gap:1.2rem;flex-wrap:wrap;}
+.ft-links button{background:none;border:none;color:#aaa;font-size:.8rem;cursor:pointer;transition:color .2s;font-family:'DM Sans',sans-serif;}
+.ft-links button:hover{color:#A78BFA;}
+
+@media(max-width:900px){
+  .contact-wrap{grid-template-columns:1fr;}
+  .c-left{padding:3rem 5%;justify-content:flex-start;}
+  .c-right{padding:3rem 5%;}
+}
+@media(max-width:640px){
+  :root{--nav-h:60px;}
+  .nav-links{display:none;}
+  .nav-cta-btn{display:none;}
+  .hamburger{display:flex;}
+  .hero{padding:2.5rem 5%;min-height:auto;}
+  .hero-btns{flex-direction:column;}
+  .btn-primary,.btn-outline{width:100%;text-align:center;}
+  .stats-row{flex-direction:column;}
+  .stat{border-right:none;border-bottom:1px solid #1e1e1e;padding:1.2rem 5%;}
+  .stat:last-child{border-bottom:none;}
+  .srv-grid{padding:2.5rem 5%;gap:1.2rem;}
+  .srv-card-top{padding:1.5rem 1.4rem 1.2rem;}
+  .srv-card-body{padding:1.2rem 1.4rem 1.5rem;}
+  .why-atouts{padding:2.5rem 5%;gap:1rem;}
+  .why-temos{padding:2.5rem 5%;}
+  .chiffres{padding:2rem 5%;grid-template-columns:1fr 1fr;}
+  .timeline{padding:2.5rem 5%;}
+  .tl-item{grid-template-columns:46px 1fr;gap:1rem;}
+  .tl-circle{width:46px;height:46px;font-size:1rem;}
+  .contact-wrap{grid-template-columns:1fr;}
+  .c-left{padding:2.5rem 5%;}
+  .c-right{padding:2.5rem 5%;}
+  .form-row{grid-template-columns:1fr;}
+  footer{flex-direction:column;align-items:flex-start;gap:1rem;}
+  .ft-links{flex-wrap:wrap;gap:.8rem;}
+  .pg-hero{padding:2.5rem 5%;}
+  .why-hero{padding:2.5rem 5%;}
+  .proc-hero{padding:2.5rem 5%;}
+  .proc-cta{padding:2.5rem 5%;}
+}
+@media(max-width:380px){
+  .logo{font-size:1.2rem;}
+  .hero h1{font-size:2rem;}
+  .chiffres{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="curtain"></div>
+
+<nav>
+  <div class="logo" onclick="goTo('home')">Tech<em>Power</em></div>
+  <ul class="nav-links">
+    <li><button class="nav-btn" data-page="services">Services</button></li>
+    <li><button class="nav-btn" data-page="pourquoi">Pourquoi nous</button></li>
+    <li><button class="nav-btn" data-page="processus">Processus</button></li>
+    <li><button class="nav-cta-btn" data-page="contact">Nous contacter</button></li>
+  </ul>
+  <button class="hamburger" id="hbg" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mob-menu">
+  <button class="mob-btn" data-page="services"  onclick="closeMob()">Services</button>
+  <button class="mob-btn" data-page="pourquoi"  onclick="closeMob()">Pourquoi nous</button>
+  <button class="mob-btn" data-page="processus" onclick="closeMob()">Processus</button>
+  <button class="mob-cta" data-page="contact"   onclick="closeMob()">Nous contacter</button>
+</div>
+
+<!-- PAGE HOME -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge"><span class="badge-dot"></span> Votre partenaire digital de confiance</div>
+      <h1>Vos idées méritent un <em>vrai</em> développement.</h1>
+      <p>Applications mobiles, sites web, installations OS et création de contenu — tous vos besoins numériques couverts.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" data-page="services">Découvrir nos services</button>
+        <button class="btn-outline" data-page="contact">Parler d'un projet</button>
+      </div>
+    </div>
+  </section>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n">50+</div><div class="stat-l">Projets livrés</div></div>
+    <div class="stat"><div class="stat-n">98%</div><div class="stat-l">Clients satisfaits</div></div>
+    <div class="stat"><div class="stat-n">5★</div><div class="stat-l">Note moyenne</div></div>
+    <div class="stat"><div class="stat-n">24h</div><div class="stat-l">Support réactif</div></div>
+  </div>
+  <footer>
+    <div class="logo" onclick="goTo('home')">Tech<em>Power</em></div>
+    <p>© 2025 TechPower. Tous droits réservés.</p>
+    <div class="ft-links">
+      <button data-page="services">Services</button>
+      <button data-page="pourquoi">Pourquoi nous</button>
+      <button data-page="processus">Processus</button>
+      <button data-page="contact">Contact</button>
+    </div>
+  </footer>
+</div>
+
+<!-- PAGE SERVICES -->
+<div class="page" id="page-services">
+  <div class="pg-hero">
+    <div class="pg-label dark">Ce que nous faisons</div>
+    <h2>Nos services numériques</h2>
+    <p>Des solutions sur mesure pour chaque besoin — mobile, web, systèmes et contenu.</p>
+  </div>
+  <div class="srv-grid">
+    <div class="srv-card">
+      <div class="srv-card-top"><div class="srv-emoji">📱</div><h3>Développement App Mobile</h3></div>
+      <div class="srv-card-body">
+        <p>Applications iOS et Android performantes, adaptées à vos besoins métier et à vos utilisateurs.</p>
+        <ul class="srv-list"><li>Android & iOS natifs</li><li>Flutter / React Native</li><li>UI/UX moderne</li><li>Intégration API</li><li>Déploiement stores</li></ul>
+        <button class="srv-cta" data-page="contact">Demander un devis</button>
+      </div>
+    </div>
+    <div class="srv-card">
+      <div class="srv-card-top"><div class="srv-emoji">🌐</div><h3>Création de Site Web</h3></div>
+      <div class="srv-card-body">
+        <p>Sites vitrines, e-commerce ou plateformes web rapides, beaux et optimisés SEO.</p>
+        <ul class="srv-list"><li>Sites vitrine & landing pages</li><li>E-commerce (WooCommerce, Shopify)</li><li>Design responsive</li><li>Optimisation SEO</li><li>WordPress ou custom</li></ul>
+        <button class="srv-cta" data-page="contact">Demander un devis</button>
+      </div>
+    </div>
+    <div class="srv-card">
+      <div class="srv-card-top"><div class="srv-emoji">💻</div><h3>Installation Système d'Exploitation</h3></div>
+      <div class="srv-card-body">
+        <p>Installation propre et configuration optimale de vos OS. Migration et récupération de données.</p>
+        <ul class="srv-list"><li>Windows 10 / 11</li><li>Linux (Ubuntu, Debian…)</li><li>Configuration & optimisation</li><li>Migration de données</li><li>Installation drivers & logiciels</li></ul>
+        <button class="srv-cta" data-page="contact">Demander un devis</button>
+      </div>
+    </div>
+    <div class="srv-card">
+      <div class="srv-card-top"><div class="srv-emoji">✍️</div><h3>Création de Contenu</h3></div>
+      <div class="srv-card-body">
+        <p>Textes, visuels, vidéos et stratégie éditoriale pour engager votre audience en ligne.</p>
+        <ul class="srv-list"><li>Rédaction web & copywriting</li><li>Design graphique</li><li>Réseaux sociaux</li><li>Montage vidéo</li><li>Stratégie de contenu</li></ul>
+        <button class="srv-cta" data-page="contact">Demander un devis</button>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="logo" onclick="goTo('home')">Tech<em>Power</em></div>
+    <p>© 2025 TechPower.</p>
+    <div class="ft-links">
+      <button data-page="pourquoi">Pourquoi nous</button>
+      <button data-page="processus">Processus</button>
+      <button data-page="contact">Contact</button>
+    </div>
+  </footer>
+</div>
+
+<!-- PAGE POURQUOI NOUS -->
+<div class="page" id="page-pourquoi">
+  <div class="why-hero">
+    <div class="pg-label light">Pourquoi nous choisir</div>
+    <h2>Ce qui fait notre différence</h2>
+    <p>Expertise, rigueur et passion au service de votre réussite numérique.</p>
+  </div>
+  <div class="why-atouts">
+    <div class="atout" data-num="01"><div class="atout-icon">⚡</div><h3>Expertise technique</h3><p>Développeurs seniors maîtrisant les dernières technologies mobiles, web et systèmes.</p></div>
+    <div class="atout" data-num="02"><div class="atout-icon">⏱️</div><h3>Délais respectés</h3><p>Nous livrons dans les temps définis. Votre planning est une priorité absolue.</p></div>
+    <div class="atout" data-num="03"><div class="atout-icon">💰</div><h3>Tarifs transparents</h3><p>Devis clairs, tarifs fixes, zéro coût caché. Vous savez exactement ce que vous payez.</p></div>
+    <div class="atout" data-num="04"><div class="atout-icon">🤝</div><h3>Suivi personnalisé</h3><p>Un interlocuteur dédié du début à la fin, disponible et à l'écoute de vos besoins.</p></div>
+    <div class="atout" data-num="05"><div class="atout-icon">🔒</div><h3>Qualité garantie</h3><p>Tests rigoureux, code propre et maintenance assurée. Nous ne livrons que ce qui est parfait.</p></div>
+    <div class="atout" data-num="06"><div class="atout-icon">🌍</div><h3>Vision locale & globale</h3><p>Ancrés en Côte d'Ivoire, nous pensons international. Vos solutions sont prêtes pour le monde.</p></div>
+  </div>
+  <div class="why-temos">
+    <div class="sec-head"><div class="lbl">Ils nous font confiance</div><h3>Ce que disent nos clients</h3></div>
+    <div class="temo-grid">
+      <div class="temo"><p class="temo-text">"TechPower a transformé notre idée en application mobile fonctionnelle en un temps record. Équipe professionnelle et à l'écoute."</p><div class="temo-author"><div class="temo-av">AK</div><div><div class="temo-name">Arnaud Kouassi</div><div class="temo-role">CEO, StartupCI</div></div></div></div>
+      <div class="temo"><p class="temo-text">"Notre site e-commerce livré à temps, design moderne et performances excellentes. Je recommande vivement."</p><div class="temo-author"><div class="temo-av">MB</div><div><div class="temo-name">Marie Bamba</div><div class="temo-role">Directrice, BoutiqueAfro</div></div></div></div>
+      <div class="temo"><p class="temo-text">"Installation rapide et propre de nos postes de travail. Migration sans aucune perte. Équipe très compétente."</p><div class="temo-author"><div class="temo-av">DT</div><div><div class="temo-name">David Traoré</div><div class="temo-role">DSI, Groupe Ivoire</div></div></div></div>
+    </div>
+  </div>
+  <div class="chiffres">
+    <div><div class="ch-n">50+</div><div class="ch-l">Projets livrés</div></div>
+    <div><div class="ch-n">98%</div><div class="ch-l">Satisfaction client</div></div>
+    <div><div class="ch-n">3 ans</div><div class="ch-l">D'expérience</div></div>
+    <div><div class="ch-n">24h</div><div class="ch-l">Délai de réponse</div></div>
+  </div>
+  <footer>
+    <div class="logo" onclick="goTo('home')">Tech<em>Power</em></div>
+    <p>© 2025 TechPower.</p>
+    <div class="ft-links">
+      <button data-page="services">Services</button>
+      <button data-page="processus">Processus</button>
+      <button data-page="contact">Contact</button>
+    </div>
+  </footer>
+</div>
+
+<!-- PAGE PROCESSUS -->
+<div class="page" id="page-processus">
+  <div class="proc-hero">
+    <div class="pg-label light">Notre méthode</div>
+    <h2>Comment on travaille</h2>
+    <p>Un processus structuré, transparent et collaboratif pour garantir le succès de chaque projet.</p>
+  </div>
+  <div class="timeline">
+    <div class="tl-item"><div class="tl-left"><div class="tl-circle">1</div><div class="tl-line"></div></div><div class="tl-content"><h3>Écoute & Analyse</h3><p>Nous prenons le temps de comprendre vos besoins, objectifs et contraintes. La base de tout bon projet.</p><div class="tl-tags"><span class="tl-tag">Réunion de cadrage</span><span class="tl-tag">Brief détaillé</span><span class="tl-tag">Analyse concurrentielle</span></div><div class="tl-dur">⏱ 1–3 jours</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-circle">2</div><div class="tl-line"></div></div><div class="tl-content"><h3>Proposition & Devis</h3><p>Proposition technique et tarifaire détaillée. Vous validez, on ajuste — zéro surprise.</p><div class="tl-tags"><span class="tl-tag">Cahier des charges</span><span class="tl-tag">Devis transparent</span><span class="tl-tag">Planning</span></div><div class="tl-dur">⏱ 2–5 jours</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-circle">3</div><div class="tl-line"></div></div><div class="tl-content"><h3>Design & Prototype</h3><p>Maquettes et prototypes interactifs pour visualiser le produit final avant le développement.</p><div class="tl-tags"><span class="tl-tag">Wireframes</span><span class="tl-tag">Maquettes UI</span><span class="tl-tag">Prototype cliquable</span></div><div class="tl-dur">⏱ 3–7 jours</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-circle">4</div><div class="tl-line"></div></div><div class="tl-content"><h3>Développement</h3><p>Développement par itérations avec des points de validation réguliers. Vous suivez en temps réel.</p><div class="tl-tags"><span class="tl-tag">Sprints agiles</span><span class="tl-tag">Points hebdomadaires</span><span class="tl-tag">Code reviewé</span></div><div class="tl-dur">⏱ 2–8 semaines</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-circle">5</div><div class="tl-line"></div></div><div class="tl-content"><h3>Tests & Validation</h3><p>Tests fonctionnels, de performance et utilisateurs. Rien ne passe si ce n'est pas parfait.</p><div class="tl-tags"><span class="tl-tag">Tests fonctionnels</span><span class="tl-tag">Tests de charge</span><span class="tl-tag">Recette client</span></div><div class="tl-dur">⏱ 3–5 jours</div></div></div>
+    <div class="tl-item"><div class="tl-left"><div class="tl-circle">6</div></div><div class="tl-content"><h3>Livraison & Suivi</h3><p>Mise en production, formation si nécessaire et support post-livraison inclus.</p><div class="tl-tags"><span class="tl-tag">Déploiement</span><span class="tl-tag">Formation</span><span class="tl-tag">Support inclus</span></div><div class="tl-dur">⏱ Ongoing</div></div></div>
+  </div>
+  <div class="proc-cta">
+    <h3>Prêt à démarrer votre projet ?</h3>
+    <p>Contactez-nous dès aujourd'hui pour une analyse gratuite.</p>
+    <button class="btn-primary" data-page="contact" style="border:none;cursor:pointer;">Commencer maintenant</button>
+  </div>
+  <footer>
+    <div class="logo" onclick="goTo('home')">Tech<em>Power</em></div>
+    <p>© 2025 TechPower</p>
+    <div class="ft-links">
+      <button data-page="services">Services</button>
+      <button data-page="pourquoi">Pourquoi nous</button>
+      <button data-page="contact">Contact</button>
+    </div>
+  </footer>
+</div>
+
+<!-- PAGE CONTACT -->
+<div class="page" id="page-contact">
+  <div class="contact-wrap">
+    <div class="c-left">
+      <div class="pg-label dark">Parlons de votre projet</div>
+      <h2>On est là pour vous aider</h2>
+      <p>Que vous ayez une idée précise ou un simple besoin, notre équipe vous répond en moins de 24h.</p>
+      <div class="c-infos">
+        <div class="c-info"><div class="c-info-icon">📍</div><div class="c-info-text"><strong>Adresse</strong><span>Yamoussoukro, Côte d'Ivoire</span></div></div>
+        <div class="c-info"><div class="c-info-icon">📧</div><div class="c-info-text"><strong>Email</strong><span>contact@techpower.ci</span></div></div>
+        <div class="c-info"><div class="c-info-icon">📞</div><div class="c-info-text"><strong>Téléphone</strong><span>+225 07 48 33 14 04</span></div></div>
+        <div class="c-info"><div class="c-info-icon">🕐</div><div class="c-info-text"><strong>Disponibilité</strong><span>Lun–Ven, 8h–18h</span></div></div>
+      </div>
+      <div class="c-socials">
+        <!-- WhatsApp -->
+        <a class="soc" href="#" title="WhatsApp" aria-label="WhatsApp">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+        <!-- LinkedIn -->
+        <a class="soc" href="#" title="LinkedIn" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        </a>
+        <!-- Instagram -->
+        <a class="soc" href="#" title="Instagram" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <!-- Facebook -->
+        <a class="soc" href="#" title="Facebook" aria-label="Facebook">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="c-right">
+      <h3>Envoyer un message</h3>
+      <p class="sub">Remplissez le formulaire — réponse sous 24h.</p>
+
+      <div class="form-err" id="form-err">⚠️ Une erreur est survenue lors de l'envoi. Veuillez réessayer ou nous contacter directement par email.</div>
+
+      <div id="cform">
+        <div class="form-row">
+          <div class="fg"><label>Prénom *</label><input type="text" id="f-prenom" placeholder="Jean"></div>
+          <div class="fg"><label>Nom</label><input type="text" id="f-nom" placeholder="Koné"></div>
+        </div>
+        <div class="fg"><label>Email *</label><input type="email" id="f-email" placeholder="jean@email.com"></div>
+        <div class="fg"><label>Téléphone </label><input type="tel" id="f-tel" placeholder="+225 07 XX XX XX XX"></div>
+        <div class="fg">
+          <label>Service souhaité</label>
+          <select id="f-srv">
+            <option value="">-- Sélectionner --</option>
+            <option>App Mobile</option>
+            <option>Site Web</option>
+            <option>Installation OS</option>
+            <option>Création de Contenu</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="fg"><label>Message *</label><textarea id="f-msg" placeholder="Décrivez votre projet..."></textarea></div>
+
+        <!-- Honeypot anti-spam (invisible) -->
+        <div style="position:absolute;left:-9999px;opacity:0;pointer-events:none;" aria-hidden="true">
+          <input type="text" id="f-honeypot" tabindex="-1" autocomplete="off">
+        </div>
+
+        <!-- Compteur de caractères -->
+        <div style="text-align:right;font-size:.75rem;color:var(--muted);margin-top:-.5rem;margin-bottom:.5rem;">
+          <span id="msg-count">0</span>/1000 caractères
+        </div>
+
+        <button class="form-sub" id="form-submit-btn" onclick="sendForm()">
+          <div class="spinner"></div>
+          <span class="btn-label">✉️ Envoyer le message</span>
+        </button>
+      </div>
+
+      <div class="form-ok" id="form-ok">
+        <div style="font-size:2.5rem;margin-bottom:.8rem">🎉</div>
+        <h4>Message envoyé !</h4>
+        <p>Merci ! Nous vous répondrons dans les 24 heures.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const EMAILJS_PUBLIC_KEY   = 'yyeixfH_Xc7n0f5km';
+const EMAILJS_SERVICE_ID   = 'service_fpw0fam';
+const EMAILJS_TEMPLATE_ID  = 'template_crdduem';
+
+(function(){
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+})();
+
+const curtain = document.getElementById('curtain');
+let current = 'home';
+let menuOpen = false;
+
+function goTo(id) {
+  if (id === current) { closeMob(); return; }
+  curtain.className = '';
+  void curtain.offsetWidth;
+  curtain.classList.add('down');
+  setTimeout(() => {
+    document.getElementById('page-' + current).classList.remove('active');
+    document.getElementById('page-' + id).classList.add('active');
+    current = id;
+    window.scrollTo({top:0});
+    curtain.className = '';
+    void curtain.offsetWidth;
+    curtain.classList.add('up');
+    if (id === 'processus') animTl();
+    updateNav();
+    closeMob();
+  }, 380);
+}
+
+function toggleMenu() {
+  menuOpen = !menuOpen;
+  document.getElementById('hbg').classList.toggle('open', menuOpen);
+  document.getElementById('mob-menu').classList.toggle('open', menuOpen);
+}
+function closeMob() {
+  menuOpen = false;
+  document.getElementById('hbg').classList.remove('open');
+  document.getElementById('mob-menu').classList.remove('open');
+}
+function updateNav() {
+  document.querySelectorAll('[data-page]').forEach(el => {
+    el.classList.toggle('active', el.dataset.page === current);
+  });
+}
+document.querySelectorAll('[data-page]').forEach(el => {
+  el.addEventListener('click', () => goTo(el.dataset.page));
+});
+
+function animTl() {
+  document.querySelectorAll('.tl-item').forEach((el, i) => {
+    el.classList.remove('visible');
+    setTimeout(() => el.classList.add('visible'), 200 + i * 140);
+  });
+}
+
+/* ── Sécurité : rate limiting ── */
+const submitLog = [];
+const RATE_LIMIT_MAX  = 3;
+const RATE_LIMIT_WIN  = 10 * 60 * 1000;
+
+function isRateLimited() {
+  const now = Date.now();
+  const recent = submitLog.filter(t => now - t < RATE_LIMIT_WIN);
+  submitLog.length = 0;
+  recent.forEach(t => submitLog.push(t));
+  return recent.length >= RATE_LIMIT_MAX;
+}
+
+/* ── Validation email ── */
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
+/* ── Compteur de caractères ── */
+document.getElementById('f-msg').addEventListener('input', function() {
+  const count = this.value.length;
+  document.getElementById('msg-count').textContent = count;
+  if (count > 1000) {
+    this.value = this.value.substring(0, 1000);
+    document.getElementById('msg-count').textContent = 1000;
+  }
+});
+
+async function sendForm() {
+  const prenom    = document.getElementById('f-prenom').value.trim();
+  const nom       = document.getElementById('f-nom').value.trim();
+  const email     = document.getElementById('f-email').value.trim();
+  const tel       = document.getElementById('f-tel').value.trim();
+  const service   = document.getElementById('f-srv').value;
+  const msg       = document.getElementById('f-msg').value.trim();
+  const honeypot  = document.getElementById('f-honeypot').value;
+  const errBanner = document.getElementById('form-err');
+  const btn       = document.getElementById('form-submit-btn');
+
+  if (honeypot) return;
+
+  if (!prenom || !email || !msg) {
+    errBanner.textContent = '⚠️ Veuillez remplir les champs obligatoires : Prénom, Email et Message.';
+    errBanner.classList.add('show');
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    errBanner.textContent = '⚠️ L\'adresse email semble invalide. Vérifiez le format (ex: jean@email.com).';
+    errBanner.classList.add('show');
+    return;
+  }
+
+  if (prenom.length < 2) {
+    errBanner.textContent = '⚠️ Le prénom doit contenir au moins 2 caractères.';
+    errBanner.classList.add('show');
+    return;
+  }
+
+  if (msg.length < 10) {
+    errBanner.textContent = '⚠️ Le message doit contenir au moins 10 caractères.';
+    errBanner.classList.add('show');
+    return;
+  }
+
+  if (isRateLimited()) {
+    errBanner.textContent = '⚠️ Trop de messages envoyés. Veuillez patienter quelques minutes avant de réessayer.';
+    errBanner.classList.add('show');
+    return;
+  }
+
+  errBanner.classList.remove('show');
+  btn.disabled = true;
+  btn.classList.add('loading');
+
+  const templateParams = {
+    from_name  : prenom + (nom ? ' ' + nom : ''),
+    from_email : email,
+    phone      : tel || 'Non renseigné',
+    service    : service || 'Non précisé',
+    message    : msg,
+    reply_to   : email,
+  };
+
+  try {
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+    submitLog.push(Date.now());
+    document.getElementById('cform').style.display = 'none';
+    document.getElementById('form-ok').style.display = 'block';
+  } catch (err) {
+    console.error('EmailJS error:', err);
+    errBanner.textContent = '⚠️ Erreur d\'envoi (' + (err.text || err.message || 'inconnue') + '). Réessayez ou écrivez à contact@techpower.ci';
+    errBanner.classList.add('show');
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+}
+
+updateNav();
+</script>
+</body>
+</html>
